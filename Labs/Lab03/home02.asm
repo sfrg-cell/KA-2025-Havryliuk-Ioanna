@@ -14,7 +14,7 @@ mov ds, ax
 ;        a = 1
 ;        if b > 20:  
 ;            a += 200  
-;    else:
+;    else: 
 ;        a = 0 
 
 mov ax, a
