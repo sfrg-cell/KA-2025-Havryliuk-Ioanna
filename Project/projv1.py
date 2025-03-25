@@ -5,9 +5,8 @@ def read_file(filename):
             line = line.rstrip("\r\n")
             count = count_subline(line)
             result_arr.append((count, index))
-        bubble_sort(result_arr)
         sorted_arr = bubble_sort(result_arr)
-        print(sorted_arr)
+        show_result(sorted_arr)
 
 
 def count_subline(line):
@@ -32,6 +31,11 @@ def bubble_sort(arr):
             if arr[j][0] > arr[j + 1][0]:
                 arr[j], arr[j + 1] = arr[j + 1], arr[j]
     return arr
+
+
+def show_result(arr):
+    for count, index in arr:
+        print(count, index)
 
 
 read_file("test.in")
