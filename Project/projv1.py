@@ -1,7 +1,13 @@
 def read_file(filename):
-    with open(filename, "r") as file:
-        for line in file:
-            count_subline(line.strip())
+    result_arr = []
+    with open(filename, "r", encoding="utf-8") as file:
+        for index, line in enumerate(file):
+            line = line.rstrip("\r\n")
+            count = count_subline(line)
+            result_arr.append((count, index))
+        bubble_sort(result_arr)
+        sorted_arr = bubble_sort(result_arr)
+        print(sorted_arr)
 
 
 def count_subline(line):
@@ -16,7 +22,16 @@ def count_subline(line):
         else:
             i += 1
 
-    print(count)
+    return count
+
+
+def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n - 1):
+        for j in range(n - i - 1):
+            if arr[j][0] > arr[j + 1][0]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+    return arr
 
 
 read_file("test.in")
