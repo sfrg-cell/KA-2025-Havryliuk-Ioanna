@@ -3,6 +3,7 @@ import sys
 MAX_LINES = 100
 MAX_LEN = 255
 
+
 def read_lines():
     """ Reads lines from stdin until EOF and returns a list. """
     lines = []
@@ -17,18 +18,24 @@ def read_lines():
     print(lines)
     return lines
 
-def count_subline(line):
-    subline = "aa"
+
+def count_substring(line, substring):
+    """ Counts non-overlapping occurrences of substring in line. """
     count = 0
     i = 0
+    sub_len = len(substring)
 
-    while i <= len(line) - len(subline):
-        if line[i: i + len(subline)] == subline:
+    while i <= len(line) - sub_len:
+        match = True
+        for j in range(sub_len):
+            if line[i + j] != substring[j]:
+                match = False
+                break
+        if match:
             count += 1
-            i += len(subline)
+            i += sub_len
         else:
             i += 1
-
     return count
 
 
@@ -48,7 +55,6 @@ def show_result(arr):
 
 read_lines()
 
+# cmd.exe /c "python projv1.py < test.in"
+# Get-Content test.in | python projv1.py
 
-
-#cmd.exe /c "python projv1.py < test.in"
-#Get-Content test.in | python projv1.py
