@@ -1,13 +1,21 @@
-def read_file(filename):
-    result_arr = []
-    with open(filename, "r", encoding="utf-8") as file:
-        for index, line in enumerate(file):
-            line = line.rstrip("\r\n")
-            count = count_subline(line)
-            result_arr.append((count, index))
-        sorted_arr = bubble_sort(result_arr)
-        show_result(sorted_arr)
+import sys
 
+MAX_LINES = 100
+MAX_LEN = 255
+
+def read_lines():
+    """ Reads lines from stdin until EOF and returns a list. """
+    lines = []
+    try:
+        while len(lines) < MAX_LINES:
+            line = sys.stdin.readline().rstrip("\r\n")
+            if not line:
+                break
+            lines.append(line[:MAX_LEN])
+    except EOFError:
+        pass
+    print(lines)
+    return lines
 
 def count_subline(line):
     subline = "aa"
@@ -38,7 +46,9 @@ def show_result(arr):
         print(count, index)
 
 
-read_file("test.in")
+read_lines()
 
 
 
+#cmd.exe /c "python projv1.py < test.in"
+#Get-Content test.in | python projv1.py
