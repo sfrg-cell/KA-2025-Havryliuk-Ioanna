@@ -39,13 +39,13 @@ def count_substring(line, substring):
     return count
 
 
-def bubble_sort(arr):
-    n = len(arr)
+def bubble_sort(counts, indices):
+    n = len(counts)
     for i in range(n - 1):
         for j in range(n - i - 1):
-            if arr[j][0] > arr[j + 1][0]:
-                arr[j], arr[j + 1] = arr[j + 1], arr[j]
-    return arr
+            if counts[j] > counts[j + 1]:
+                counts[j], counts[j + 1] = counts[j + 1], counts[j]
+                indices[j], indices[j + 1] = indices[j + 1], indices[j]
 
 
 def show_result(arr):
