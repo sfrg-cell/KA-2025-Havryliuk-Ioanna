@@ -48,13 +48,32 @@ def bubble_sort(counts, indices):
                 indices[j], indices[j + 1] = indices[j + 1], indices[j]
 
 
-def show_result(arr):
-    for count, index in arr:
-        print(count, index)
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: script.py <substring>")
+        return
+
+    substring = sys.argv[1]
+    lines = read_lines()
+
+    counts = []
+    indices = []
+
+    for i, line in enumerate(lines):
+        count = count_substring(line, substring)
+        counts.append(count)
+        indices.append(i)
+
+    bubble_sort(counts, indices)
+
+    for i in range(len(counts)):
+        print(f"{counts[i]} {indices[i]}")
 
 
-read_lines()
+if __name__ == "__main__":
+    main()
 
-# cmd.exe /c "python projv1.py < test.in"
-# Get-Content test.in | python projv1.py
+
+
+#Get-Content test.in | python projv1.py aa
 
