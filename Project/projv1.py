@@ -15,7 +15,6 @@ def read_lines():
             lines.append(line[:MAX_LEN])
     except EOFError:
         pass
-    print(lines)
     return lines
 
 
