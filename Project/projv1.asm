@@ -40,22 +40,22 @@ read_file:
     lea dx, buffer
     int 21h
 
-    cmp ax, 0
+    cmp ax, 0           
     je close_file
 
-    mov cx, ax
-    mov si, 0
+    mov cx, ax          
+    mov si, 0           
 
 process_char:
-    cmp si, cx
-    jae read_file
+    cmp si, cx          
+    jae read_file       
 
-    mov al, buffer[si]
+    mov al, buffer[si]  
     
-    cmp al, 0Dh
+    cmp al, 0Dh         
     je found_cr
     
-    cmp al, 0Ah
+    cmp al, 0Ah         
     je found_lf
     
     mov di, line_count
@@ -66,23 +66,23 @@ process_char:
     mov lines[di], al
     inc line_pos
     
-    inc si
+    inc si              
     jmp process_char
 
 found_cr:
-    inc si
+    inc si              
     
-    cmp si, cx
+    cmp si, cx          
     jae save_line
     
-    cmp buffer[si], 0Ah
-    jne save_line
+    cmp buffer[si], 0Ah 
+    jne save_line       
     
-    inc si
+    inc si              
     jmp save_line
 
 found_lf:
-    inc si
+    inc si              
 
 save_line:
     mov di, line_count
@@ -92,15 +92,19 @@ save_line:
     add di, line_pos
     mov lines[di], '$'
 
+    push si             
+    push cx             
     call count_substring
+    pop cx              
+    pop si              
     
-    inc line_count
-    mov line_pos, 0
+    inc line_count      
+    mov line_pos, 0     
     
-    cmp line_count, 100
+    cmp line_count, 100 
     jge close_file
     
-    jmp process_char
+    jmp process_char    
 
 close_file:
     mov ah, 3Eh
@@ -113,42 +117,41 @@ exit:
 main endp
 
 count_substring proc
-xor cx, cx
-lea si, buffer
-lea di, key
-
-compare_loop:
-mov al, [si]
-mov dl, [di]
-cmp al, dl
-jne match_not_found
-je match_found
-
-match_found:
-lea si, [si + 1]
-lea di, [di + 1]
-cmp si, 0
-je finish
-cmp di, 0
-je inc_count
-jmp compare_loop
-
-match_not_found:
-lea si, [si + 1]
-cmp si, 0
-je finish
-lea di, key
-jmp compare_loop
-
-inc_count:
-inc cx
-lea di, key
-jmp compare_loop
-
+    xor cx, cx          
+    mov si, 0           
+    
+search_loop:
+    mov di, 0           
+    mov bx, si          
+    
+compare_chars:
+    mov al, lines[bx]   
+    cmp al, '$'         
+    je finish           
+    
+    mov dl, key[di]     
+    cmp dl, 0           
+    je found_match      
+    
+    cmp al, dl          
+    jne no_match        
+    
+    inc bx              
+    inc di              
+    jmp compare_chars   
+    
+no_match:
+    inc si              
+    jmp search_loop
+    
+found_match:
+    inc cx              
+    add si, di          
+    jmp search_loop
+    
 finish:
-mov match_count, cl
-
-ret
+    mov match_count, cl 
+    ret
 count_substring endp
 
 end main
