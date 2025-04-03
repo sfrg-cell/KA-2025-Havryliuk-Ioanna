@@ -12,6 +12,7 @@
     key db 'aa', 0             
     key_len dw 2               
     matches dw 100 dup(0)      
+    output_buffer db 6 dup(' '), '$' 
     
 .code
 main proc
@@ -42,7 +43,7 @@ read_file:
 
     cmp ax, 0           
     jnz process_bytes   
-    jmp close_file
+    jmp process_results 
 
 process_bytes:
     mov cx, ax          
@@ -121,14 +122,41 @@ save_line:
     mov line_pos, 0     
     
     cmp line_count, 100 
-    jge close_file
+    jge process_results
     
     jmp process_char    
 
-close_file:
+process_results:
     mov ah, 3Eh
     mov bx, handle
     int 21h
+    
+    mov cx, line_count
+    xor si, si
+
+display_loop:
+    cmp si, cx
+    jae exit    
+    
+    mov bx, si
+    shl bx, 1 
+    mov ax, matches[bx]
+    
+    call print_number
+    
+    mov ah, 02h
+    mov dl, ' '
+    int 21h
+    
+    mov ax, si
+    call print_number
+    
+    mov ah, 09h
+    lea dx, newline
+    int 21h
+    
+    inc si
+    jmp display_loop
 
 exit:
     mov ax, 4C00h
@@ -199,5 +227,45 @@ count_done:
     pop ax
     ret
 count_substring endp
+
+print_number proc
+    push ax
+    push bx
+    push cx
+    push dx
+    
+    xor cx, cx
+    mov bx, 10
+    
+    test ax, ax
+    jnz extract_digits
+    
+    mov ah, 02h
+    mov dl, '0'
+    int 21h
+    jmp print_number_end
+    
+extract_digits:
+    xor dx, dx
+    div bx
+    push dx
+    inc cx
+    test ax, ax
+    jnz extract_digits
+    
+output_digits:
+    pop dx
+    add dl, '0'
+    mov ah, 02h
+    int 21h
+    loop output_digits
+    
+print_number_end:
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
+print_number endp
 
 end main
