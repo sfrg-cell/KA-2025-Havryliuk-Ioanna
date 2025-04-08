@@ -42,8 +42,23 @@ read_file:
     int 21h
 
     cmp ax, 0           
-    jnz process_bytes   
-    jmp process_results 
+    jz check_eof  
+    jmp process_bytes
+
+check_eof:
+    cmp line_pos, 0
+    je process_results
+
+    call count_shift
+    mov byte ptr lines[di], 0
+
+    mov bx, line_count
+    call count_substring
+
+    inc line_count
+    mov line_pos, 0
+    
+    jmp process_results
 
 process_bytes:
     mov cx, ax          
@@ -61,17 +76,7 @@ process_char:
     cmp al, 0Ah         
     je found_lf
     
-    push ax             
-    push cx             
-    
-    mov ax, line_count
-    mov cx, 255
-    mul cx
-    add ax, line_pos
-    mov di, ax          
-    
-    pop cx              
-    pop ax              
+    call count_shift             
     
     mov lines[di], al  
     inc line_pos        
@@ -95,17 +100,7 @@ found_lf:
     inc si              
 
 save_line:
-    push ax
-    push cx
-    
-    mov ax, line_count
-    mov cx, 255
-    mul cx
-    add ax, line_pos
-    mov di, ax
-    
-    pop cx
-    pop ax
+    call count_shift 
     
     mov byte ptr lines[di], 0    
 
@@ -134,10 +129,10 @@ process_results:
     mov cx, line_count
     xor si, si
 
-display_loop:
+display_loop:   
     cmp si, cx
-    jae exit    
-    
+    jae exit
+
     mov bx, si
     shl bx, 1 
     mov ax, matches[bx]
@@ -153,7 +148,7 @@ display_loop:
     
     mov ah, 09h
     lea dx, newline
-    int 21h
+    int 21h 
     
     inc si
     jmp display_loop
@@ -162,6 +157,21 @@ exit:
     mov ax, 4C00h
     int 21h
 main endp
+
+count_shift proc
+    push ax
+    push cx
+    
+    mov ax, line_count
+    mov cx, 255
+    mul cx
+    add ax, line_pos
+    mov di, ax
+    
+    pop cx
+    pop ax
+    ret
+count_shift endp
 
 count_substring proc
     push ax
@@ -176,9 +186,6 @@ count_substring proc
     mov si, ax          
     xor cx, cx          
     
-    cmp byte ptr lines[si], 0
-    je count_done
-
 count_loop:
     cmp byte ptr lines[si], 0
     je count_done
