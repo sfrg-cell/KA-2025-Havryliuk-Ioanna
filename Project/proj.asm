@@ -1,7 +1,6 @@
 .model small
 .stack 100h
 .data 
-    filename db 'test.in', 0
     error_msg db 'Error opening file!$'
     buffer db 255 dup(0)
     lines db 100*255 dup(0)  
@@ -10,9 +9,10 @@
     line_pos dw 0
     handle dw ?
     key db 'aa', 0             
-    key_len dw 2               
+    key_len dw 1               
     matches dw 100 dup(0)      
-    output_buffer db 6 dup(' '), '$' 
+    output_buffer db 6 dup(' '), '$'
+    line_indexes dw 100 dup(0) 
     
 .code
 main proc
@@ -20,18 +20,7 @@ main proc
     mov ds, ax
 
 open_file:
-    mov ah, 3Dh          
-    mov al, 00h          
-    lea dx, filename
-    int 21h
-    jnc file_opened
-    mov ah, 09h
-    lea dx, error_msg
-    int 21h
-    jmp exit
-    
-file_opened:
-    mov handle, ax
+    mov handle, 0    
     mov line_count, 0
 
 read_file:
@@ -122,10 +111,9 @@ save_line:
     jmp process_char    
 
 process_results:
-    mov ah, 3Eh
-    mov bx, handle
-    int 21h
     
+    call bubble_sort
+
     mov cx, line_count
     xor si, si
 
@@ -143,7 +131,7 @@ display_loop:
     mov dl, ' '
     int 21h
     
-    mov ax, si
+    mov ax, line_indexes[bx]
     call print_number
     
     mov ah, 09h
@@ -234,6 +222,71 @@ count_done:
     pop ax
     ret
 count_substring endp
+
+bubble_sort proc
+    push ax
+    push bx
+    push cx
+    push dx
+    push si
+    
+    mov cx, line_count
+    xor si, si
+    
+init:
+    cmp si, cx
+    jae sort
+    
+    mov bx, si
+    shl bx, 1
+    mov line_indexes[bx], si
+    
+    inc si
+    jmp init
+    
+sort:
+    mov cx, line_count
+    dec cx
+    jz sort_finish
+    
+outer_loop:
+    xor si, si
+    
+inner_loop:
+    mov bx, si
+    shl bx, 1
+    
+    mov ax, matches[bx]
+    mov dx, matches[bx+2]
+    
+    cmp ax, dx
+    jle next_chars
+    
+    mov matches[bx], dx
+    mov matches[bx+2], ax
+    
+    mov ax, line_indexes[bx]
+    mov dx, line_indexes[bx+2]
+    mov line_indexes[bx], dx
+    mov line_indexes[bx+2], ax
+    
+next_chars:
+    inc si
+    mov ax, line_count
+    dec ax
+    cmp si, ax
+    jl inner_loop
+    
+    loop outer_loop
+    
+sort_finish:
+    pop si
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
+bubble_sort endp
 
 print_number proc
     push ax
