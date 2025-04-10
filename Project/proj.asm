@@ -35,11 +35,6 @@ read_file:
     jmp process_bytes
 
 check_eof:
-    cmp line_pos, 0
-    jne skip_processing 
-    jmp process_results
-
-skip_processing:
     call count_shift
     mov byte ptr lines[di], 0
 
@@ -47,7 +42,6 @@ skip_processing:
     call count_substring
 
     inc line_count
-    mov line_pos, 0
     
     jmp process_results
 
