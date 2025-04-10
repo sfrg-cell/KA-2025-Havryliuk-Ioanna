@@ -30,30 +30,30 @@ read_file:
     lea dx, buffer
     int 21h
 
-    cmp ax, 0           
+    cmp ax, 0                                 ; Check if file read is successful           
     jz check_eof
     jmp process_bytes
 
 check_eof:
     call count_shift
-    mov byte ptr lines[di], 0
+    mov byte ptr lines[di], 0                 ; Null to terminate current line
 
     mov bx, line_count
-    call count_substring
+    call count_substring                      ; Count occurrences of key in the line
 
     inc line_count
     
     jmp process_results
 
 process_bytes:
-    mov cx, ax          
+    mov cx, ax                                ; Set the number of bytes read         
     xor si, si          
 
 process_char:
-    cmp si, cx          
+    cmp si, cx                                ; Check if end of buffer reached          
     jae read_file       
 
-    mov al, buffer[si]  
+    mov al, buffer[si]                        ; Load current character  
     
     cmp al, 0Dh         
     je found_cr
@@ -63,80 +63,80 @@ process_char:
     
     call count_shift             
     
-    mov lines[di], al  
+    mov lines[di], al                         ; Store character in the current line 
     inc line_pos 
-    cmp line_pos, 255
+    cmp line_pos, 255                         ; Check if line exceeded maximum length
     jge overflow       
     
-    inc si              
+    inc si                                    ; Move to the next character              
     jmp process_char
 
 overflow:
     mov ah, 09h
-    lea dx, error_msg
+    lea dx, error_msg                         ; Display overflow error
     int 21h
     jmp exit
 
 found_cr:
-    inc si              
+    inc si                                    ; Skip CR              
     
-    cmp si, cx          
+    cmp si, cx                                ; Check if end of buffer reached          
     jae save_line
     
-    cmp buffer[si], 0Ah 
+    cmp buffer[si], 0Ah                       ; Check for LF 
     jne save_line       
     
-    inc si              
+    inc si                                    ; Skip LF              
     jmp save_line
 
 found_lf:
-    inc si              
+    inc si                                    ; Skip LF              
 
 save_line:
     call count_shift 
     
-    mov byte ptr lines[di], 0    
+    mov byte ptr lines[di], 0                 ; Null to terminate current line    
 
     push si             
     push cx             
     
     mov bx, line_count  
-    call count_substring
+    call count_substring                      ; Count occurrences of key in the line
     
     pop cx              
     pop si              
     
     inc line_count      
-    mov line_pos, 0     
+    mov line_pos, 0                           ; Reset line position     
     
-    cmp line_count, 100 
+    cmp line_count, 100                       ; Check if max line count reached 
     jge overflow
 
     jmp process_char   
 
 process_results:
     
-    call bubble_sort
+    call bubble_sort                          ; Sort the results
 
     mov cx, line_count
-    xor si, si
+    xor si, si                                ; Initialize index for displaying results
 
 display_loop:   
-    cmp si, cx
+    cmp si, cx                                ; Check if all lines are processed
     jae exit
 
     mov bx, si
-    shl bx, 1 
+    shl bx, 1                                 ; Multiply index by 2 for 16-bit access 
     mov ax, matches[bx]
     
-    call print_number
+    call print_number                         ; Print match count
     
     mov ah, 02h
     mov dl, ' '
     int 21h
     
     mov ax, line_indexes[bx]
-    call print_number
+    call print_number                         ; Print line index
     
     mov ah, 09h
     lea dx, newline
@@ -155,9 +155,9 @@ count_shift proc
     push cx
     
     mov ax, line_count
-    mov cx, 255
+    mov cx, 255                                ; Multiply line_count by 255
     mul cx
-    add ax, line_pos
+    add ax, line_pos                           ; Add current position in the line
     mov di, ax
     
     pop cx
@@ -174,49 +174,49 @@ count_substring proc
     push di
     
     mov ax, 255
-    mul bx              
+    mul bx                                     ; Multiply by 255 to get the byte offset for the line             
     mov si, ax          
-    xor cx, cx          
+    xor cx, cx                                 ; Initialize match count          
     
 count_loop:
-    cmp byte ptr lines[si], 0
+    cmp byte ptr lines[si], 0                  ; Check if line is terminated
     je count_done
     
-    mov di, 0           
+    mov di, 0                                  ; Initialize key index           
     
 match_loop:
     mov al, key[di]     
-    cmp al, 0           
+    cmp al, 0                                  ; Check if the key is finished          
     je match_found      
     
     push bx             
-    mov bx, si          
-    add bx, di          
+    mov bx, si                                 ; Store line index          
+    add bx, di                                 ; Add key index to line offset          
     mov ah, lines[bx]   
     pop bx              
     
-    cmp ah, 0           
+    cmp ah, 0                                  ; Check if end of line reached           
     je count_done       
     
-    cmp ah, al          
+    cmp ah, al                                 ; Compare current line character with key          
     jne match_failed    
     
-    inc di              
+    inc di                                     ; Move to the next key character              
     jmp match_loop      
     
 match_found:
-    inc cx              
-    add si, di          
+    inc cx                                     ; Increment match count              
+    add si, di                                 ; Move to the next part of the line          
     jmp count_loop      
     
 match_failed:
-    inc si              
+    inc si                                     ; Move to the next character in the line              
     jmp count_loop      
     
 count_done:
     mov di, bx
     shl di, 1           
-    mov matches[di], cx 
+    mov matches[di], cx                        ; Store the match count 
     
     pop di
     pop si
@@ -239,11 +239,11 @@ bubble_sort proc
     
 init:
     cmp si, cx
-    jae sort
+    jae sort                                   ; If all lines processed, go to sorting
     
     mov bx, si
     shl bx, 1
-    mov line_indexes[bx], si
+    mov line_indexes[bx], si                   ; Store the index in line_indexes
     
     inc si
     jmp init
@@ -254,7 +254,7 @@ sort:
     jz sort_finish
     
 outer_loop:
-    xor si, si
+    xor si, si                                 ; Reset index for outer loop
     
 inner_loop:
     mov bx, si
@@ -263,16 +263,16 @@ inner_loop:
     mov ax, matches[bx]
     mov dx, matches[bx+2]
     
-    cmp ax, dx
-    jle next_chars
+    cmp ax, dx                                  ; Compare current and next match counts
+    jle next_chars                              ; If no swap needed, continue
     
     mov matches[bx], dx
-    mov matches[bx+2], ax
+    mov matches[bx+2], ax                       ; Swap match counts
     
     mov ax, line_indexes[bx]
     mov dx, line_indexes[bx+2]
     mov line_indexes[bx], dx
-    mov line_indexes[bx+2], ax
+    mov line_indexes[bx+2], ax                  ; Swap line indexes
     
 next_chars:
     inc si
@@ -301,7 +301,7 @@ print_number proc
     xor cx, cx
     mov bx, 10
     
-    test ax, ax
+    test ax, ax                                 ; Check if the number is zero
     jnz extract_digits
     
     mov ah, 02h
@@ -311,15 +311,15 @@ print_number proc
     
 extract_digits:
     xor dx, dx
-    div bx
+    div bx                                      ; Divide ax by 10
     push dx
     inc cx
-    test ax, ax
+    test ax, ax                                 ; Test if ax is zero
     jnz extract_digits
     
 output_digits:
-    pop dx
-    add dl, '0'
+    pop dx                                      ; Pop the last digit
+    add dl, '0'                                 ; Convert the digit to ASCII
     mov ah, 02h
     int 21h
     loop output_digits
