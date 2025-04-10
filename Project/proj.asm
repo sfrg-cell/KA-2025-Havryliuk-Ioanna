@@ -1,7 +1,7 @@
 .model small
 .stack 100h
 .data 
-    error_msg db 'Error opening file!$'
+    error_msg db 'Error overflow!$'
     buffer db 255 dup(0)
     lines db 100*255 dup(0)  
     newline db 13, 10, '$'
@@ -9,7 +9,7 @@
     line_pos dw 0
     handle dw ?
     key db 'aa', 0             
-    key_len dw 1               
+    key_len dw 2               
     matches dw 100 dup(0)      
     output_buffer db 6 dup(' '), '$'
     line_indexes dw 100 dup(0) 
@@ -31,13 +31,15 @@ read_file:
     int 21h
 
     cmp ax, 0           
-    jz check_eof  
+    jz check_eof
     jmp process_bytes
 
 check_eof:
     cmp line_pos, 0
-    je process_results
+    jne skip_processing 
+    jmp process_results
 
+skip_processing:
     call count_shift
     mov byte ptr lines[di], 0
 
@@ -68,10 +70,18 @@ process_char:
     call count_shift             
     
     mov lines[di], al  
-    inc line_pos        
+    inc line_pos 
+    cmp line_pos, 255
+    jge overflow       
     
     inc si              
     jmp process_char
+
+overflow:
+    mov ah, 09h
+    lea dx, error_msg
+    int 21h
+    jmp exit
 
 found_cr:
     inc si              
@@ -106,9 +116,9 @@ save_line:
     mov line_pos, 0     
     
     cmp line_count, 100 
-    jge process_results
-    
-    jmp process_char    
+    jge overflow
+
+    jmp process_char   
 
 process_results:
     
