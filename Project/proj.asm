@@ -9,9 +9,8 @@
     line_pos dw 0
     handle dw ?
     key db 'aa', 0             
-    key_len dw 2               
+    key_len dw 2              
     matches dw 100 dup(0)      
-    output_buffer db 6 dup(' '), '$'
     line_indexes dw 100 dup(0) 
     
 .code
@@ -95,16 +94,10 @@ found_lf:
 save_line:
     call count_shift 
     
-    mov byte ptr lines[di], 0                 ; Null to terminate current line    
-
-    push si             
-    push cx             
+    mov lines[di], 0                          ; Null to terminate current line               
     
     mov bx, line_count  
-    call count_substring                      ; Count occurrences of key in the line
-    
-    pop cx              
-    pop si              
+    call count_substring                      ; Count occurrences of key in the line            
     
     inc line_count      
     mov line_pos, 0                           ; Reset line position     
@@ -179,7 +172,7 @@ count_substring proc
     xor cx, cx                                 ; Initialize match count          
     
 count_loop:
-    cmp byte ptr lines[si], 0                  ; Check if line is terminated
+    cmp lines[si], 0                           ; Check if line is terminated
     je count_done
     
     mov di, 0                                  ; Initialize key index           
@@ -239,7 +232,7 @@ bubble_sort proc
     
 init:
     cmp si, cx
-    jae sort                                   ; If all lines processed, go to sorting
+    jge sort                                   ; If all lines processed, go to sorting
     
     mov bx, si
     shl bx, 1
