@@ -39,26 +39,23 @@ read_line:
     jmp read_line
     
 end_of_line:
+    mov ax, di
+    sub ax, bx
+    
+    cmp ax, 0
+    je exit_input
+    
     mov byte ptr [di], '$'
     inc di
-    
-    cmp di, bx
-    je empty_line
-    
     inc count
     mov bx, di
     add si, 2
     loop input_loop
     jmp display_output
     
-empty_line:
-    cmp count, 0
-    je display_output
-    
-    inc count
-    mov bx, di
-    add si, 2
-    loop input_loop
+exit_input:
+    mov byte ptr [di], '$'
+    jmp display_output
     
 display_output:
     lea dx, output_msg
